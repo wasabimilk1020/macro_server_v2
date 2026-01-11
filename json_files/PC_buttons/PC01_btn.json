@@ -11,7 +11,7 @@
         {
             "name": "격전의섬",
             "x": 1142,
-            "y": 375,
+            "y": 443,
             "xRange": 10,
             "yRange": 10,
             "charging": 2
@@ -19,7 +19,7 @@
         {
             "name": "파괴된성채",
             "x": 1142,
-            "y": 375,
+            "y": 443,
             "xRange": 10,
             "yRange": 10,
             "charging": 1
@@ -128,7 +128,7 @@
             "y": 25,
             "xRange": 40,
             "yRange": 40,
-            "charging": 3
+            "charging": 4
         },
         {
             "name": "아이템분해",
@@ -228,6 +228,30 @@
         },
         {
             "name": "거래소",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "재등록",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "정산",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "마력잉크",
             "x": 0,
             "y": 0,
             "xRange": 0,
@@ -342,6 +366,14 @@
         },
         {
             "name": "파던입장",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "창정렬",
             "x": 0,
             "y": 0,
             "xRange": 0,
