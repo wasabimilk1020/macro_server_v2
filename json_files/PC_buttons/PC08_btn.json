@@ -112,7 +112,7 @@
             "y": 10,
             "xRange": 30,
             "yRange": 30,
-            "charging": 0
+            "charging": 4
         },
         {
             "name": "우편",
@@ -366,6 +366,22 @@
         },
         {
             "name": "파던입장",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "창정렬",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "CODE",
             "x": 0,
             "y": 0,
             "xRange": 0,

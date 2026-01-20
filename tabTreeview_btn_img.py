@@ -339,14 +339,14 @@ class TabTreeview_btn(QWidget):
       # 비동기 메시지 박스를 안전하게 실행
       msg_box = QMessageBox(parent_window)
       msg_box.setWindowTitle("확인")
-      msg_box.setText("컴퓨터를 재시작하시겠습니까?")
+      msg_box.setText("컴퓨터 재시작 예약 하시겠습니까?")
       msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
       msg_box.setDefaultButton(QMessageBox.No)
       # 메시지 박스가 닫힐 때 후속 동작 실행
       def on_messagebox_closed(result):
           if result == QMessageBox.Yes:
               try:
-                  self.sio.emit('reboot_computer', {}, to=sid)
+                  self.sio.emit('reboot_computer', {"days":"WED","time":"07:00"}, to=sid) #"days":"WED","time":"07:00" 이렇게 하드코딩하면 안된다. 임시
               except Exception as e:
                   print(f"소켓 오류 발생: {e}")  # 네트워크 오류 발생 시 로그 출력
       msg_box.buttonClicked.connect(lambda button: on_messagebox_closed(msg_box.standardButton(button)))
@@ -359,7 +359,14 @@ class TabTreeview_btn(QWidget):
           return
       self.sio.emit('game_start', {}, to=sid)
       return
-      
+    elif button_name == "CODE":
+      sid = self.pcList.get(self.tab_name)
+      if not sid:
+          print("에러: 해당 클라이언트의 sid를 찾을 수 없습니다.")
+          return
+      self.sio.emit('update_code', {}, to=sid)
+      return
+    
     # 그룹 이름과 관련된 버튼 데이터를 매핑
     button_dict_map = {
       "던전": self.dungeon_buttons,
