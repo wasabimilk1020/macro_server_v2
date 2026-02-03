@@ -35,10 +35,10 @@
         {
             "name": "상아탑",
             "x": 665,
-            "y": 585,
+            "y": 675,
             "xRange": 10,
             "yRange": 10,
-            "charging": 2
+            "charging": 0
         },
         {
             "name": "안타라스",
@@ -257,6 +257,14 @@
             "xRange": 0,
             "yRange": 0,
             "charging": 0
+        },
+        {
+            "name": "상자열기",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
         }
     ],
     "세팅": [
@@ -382,6 +390,14 @@
         },
         {
             "name": "CODE",
+            "x": 0,
+            "y": 0,
+            "xRange": 0,
+            "yRange": 0,
+            "charging": 0
+        },
+        {
+            "name": "실행광고",
             "x": 0,
             "y": 0,
             "xRange": 0,
