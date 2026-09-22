@@ -145,17 +145,7 @@ class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래�
       else:
         print("없는 아이디")
 
-  def set_account(self, PC_id):
-    # character_list={"아이디":핸들 값}
-    try:
-      character_list=utils.load_json(f"./json_files/character_list/{PC_id}.json")
-    except FileNotFoundError:
-      print(f"{PC_id} JSON 파일이 없음")
-      return
-    except json.JSONDecodeError:
-      print(f"{PC_id} JSON 파일의 형식이 잘못됨")
-      return
-
+  def set_account(self, PC_id,character_list):
     self.name_list=character_list.keys()
     
     # 기존 rowId 데이터를 모두 제거

@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 class SignalGenerator(QObject):
   log = pyqtSignal(object, object, object, object, object)
-  set_account = pyqtSignal(object)
+  set_account = pyqtSignal(object,object)
   user_signal_client_status_label = pyqtSignal(object,object)
   user_signal_stop_animation = pyqtSignal(object,object)
   user_signal_captured_img = pyqtSignal(object,object,object,object)
@@ -45,7 +45,7 @@ class WebSocketServer:
     self.signal_generator.user_signal_captured_img.connect(main_window.tab.image_layout)
     self.signal_generator.user_signal_diamond.connect(main_window.tab.diamond_update_sum)
     # self.signal_generator.user_signal_statusChk.connect(main_window.tab.diamond_update_sum)
-
+    print("signal 연결 당시 tab:", id(main_window.tab))
 
     # 이벤트 핸들러 등록
     self.sio.on('connect', self.connect)
@@ -62,8 +62,7 @@ class WebSocketServer:
     query_params = parse_qs(query_string)
     computer_id = query_params["computer_id"][0]  # "PC01"
     self.pcList[computer_id] = sid  #클라이언트 리스트 생성
-
-    self.signal_generator.set_account.emit(computer_id)  #어카운트 세팅
+    self.sio.emit("reqAccount","어카운트 정보 요청!",to=sid)
     self.signal_generator.user_signal_client_status_label.emit("Client Status:ON",computer_id)
     main_window.tab.tab_contents[computer_id].tabTreeview_btn_img.setup_data(self.pcList, self.sio)  #버튼 클래스 pcList setup
     main_window.send_to_image.setup_data(self.sio)
@@ -82,7 +81,6 @@ class WebSocketServer:
     self.signal_generator.user_signal_client_status_label.emit("Client Status:OFF",computer_id)
     # self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
     #여기서 checkStatusRun(False)를 해줘야 하는데 btn클래스 안에 있어서 호출을 못함 나중에 treeview로 뺴서하자
-   
 
   def handle_ping(self, sid, data):
     # logging.info(f"Received ping from {sid}: {data['time']}")
@@ -93,17 +91,7 @@ class WebSocketServer:
   def revAccount(self, sid, data):
     character_list=data  #{"아이디":핸들 값...}
     computer_id=self.get_computer_id(sid)
-    
-    try:
-      with open(f"./json_files/character_list/{computer_id}.json", "w", encoding="utf-8") as json_file:
-        json.dump(character_list, json_file, indent=4, ensure_ascii=False)
-        json_file.flush()  # OS 버퍼에 있는 내용을 즉시 디스크에 반영
-        os.fsync(json_file.fileno())  # 디스크 기록 완료 보장
-      self.signal_generator.set_account.emit(computer_id)
-    except Exception as e:
-      print(f"Error saving JSON file for {computer_id}: {e}")  
-
-    # self.signal_generator.user_signal_treeview.emit(computer_id)
+    self.signal_generator.set_account.emit(computer_id,character_list)
     
   def logEvent(self, sid, data):
     #[log_message, id, flag]
