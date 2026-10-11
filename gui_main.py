@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
     #Account, Log, and json 위젯과 레이아웃
     self.main_top_groupBox = QGroupBox("Account and Log")
     self.main_top_widget_layout=QVBoxLayout()
-    self.tab = tab.Tab(tab_count=7)
+    self.tab = tab.Tab(tab_count=8)
     self.main_top_widget_layout.addWidget(self.tab)
     self.main_top_groupBox.setLayout(self.main_top_widget_layout)
 

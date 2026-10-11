@@ -111,7 +111,7 @@ class JsonEditor(QWidget):
         """특정 탭의 버튼 레이아웃을 업데이트."""
         self.tab_treeview_btn
         if target_tab_name:
-            self.tab_treeview_btn.add_buttons()
+            self.tab_treeview_btn.load_buttons()
             print(f"Updated buttons for tab: {target_tab_name}")
         else:
             print(f"Tab {target_tab_name} does not exist.")
