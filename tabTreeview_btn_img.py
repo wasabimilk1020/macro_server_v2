@@ -8,7 +8,7 @@ from datetime import timedelta
 import utils
 
 class SignalGenerator(QObject):
-  user_signal_send_to_command= pyqtSignal(object,object,object)
+  user_signal_send_command_to_client= pyqtSignal(object,object,object)
   user_signal_start_animation = pyqtSignal(object,object)
   user_signal_setText_time_for_statusChk = pyqtSignal(object,object)
 
@@ -74,7 +74,7 @@ class TabTreeview_btn(QWidget):
     self.run_btn_cnt=0
     self.signal_generator = SignalGenerator()
     self.signal_generator.user_signal_start_animation.connect(self.start_animation)
-    self.signal_generator.user_signal_send_to_command.connect(self.send_to_command)
+    self.signal_generator.user_signal_send_command_to_client.connect(self.send_command_to_client)
     self.signal_generator.user_signal_setText_time_for_statusChk.connect(self.setText_time_for_statusChk)
     
     #reset 및 client status 위젯 및 레이아웃 세팅
@@ -172,7 +172,7 @@ class TabTreeview_btn(QWidget):
 
     if self.run_btn_cnt==3:
       self.signal_generator.user_signal_setText_time_for_statusChk.emit(3, new_time.strftime('%H:%M:%S'))
-      self.signal_generator.user_signal_send_to_command.emit(button, "아이템분해",1)
+      self.signal_generator.user_signal_send_command_to_client.emit(button, "아이템분해",1)
       self.run_btn_cnt=0
     elif self.run_btn_cnt==2:
       self.signal_generator.user_signal_setText_time_for_statusChk.emit(3, f"아이템분해: {new_time.strftime('%H:%M:%S')}")
@@ -261,11 +261,11 @@ class TabTreeview_btn(QWidget):
         qpush_btn.customContextMenuRequested.connect(self.show_context_menu)
   
         #버튼 클릭 시 동작
-        qpush_btn.clicked.connect(self.send_to_command)
+        qpush_btn.clicked.connect(self.send_command_to_client)
 
   #왼쪽 버튼 클릭 시 이벤트 핸들러  
   #button event handler라고 이름 바꾸자
-  def send_to_command(self, button=None, title=None, flag=None):
+  def send_command_to_client(self, button=None, title=None, flag=None):
     if flag is not None:
       button_name=title    
     else:

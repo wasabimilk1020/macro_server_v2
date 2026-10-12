@@ -213,7 +213,7 @@ class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래�
         elif button_name =="ON":
           self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
         else:
-          self.tab_contents[computer_id].tabTreeview_btn_img.send_to_command()   
+          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client()   
   
   def stop_animation(self,btn_name,computer_id):
     button_name=btn_name

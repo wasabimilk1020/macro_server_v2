@@ -4,7 +4,7 @@ import random
 import schedule
 
 class SignalGenerator(QObject):
-  user_signal_schedule_send_to_command = pyqtSignal(object, object, object)
+  user_signal_schedule_send_command_to_client = pyqtSignal(object, object, object)
   
 class ScheduleTable(QWidget):
   def __init__(self,tab_tree_view):
@@ -15,7 +15,7 @@ class ScheduleTable(QWidget):
     self.signal_generator = SignalGenerator()
     for computer_id in self.tab_tree_view.tab_contents.keys():
       # print("computer_id",computer_id)
-      self.signal_generator.user_signal_schedule_send_to_command.connect(self.tab_tree_view.tab_contents[computer_id].tabTreeview_btn_img.send_to_command)
+      self.signal_generator.user_signal_schedule_send_command_to_client.connect(self.tab_tree_view.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client)
     
     # 메인 레이아웃
     layout = QVBoxLayout()
@@ -47,7 +47,7 @@ class ScheduleTable(QWidget):
   def set_schedule_with_button(self, header_title):
     button = self.scheduled_buttons.get(header_title)
     if button:
-      self.signal_generator.user_signal_schedule_send_to_command.emit(button, header_title,1)
+      self.signal_generator.user_signal_schedule_send_command_to_client.emit(button, header_title,1)
 
   #여기 for루프가 너무 많은대...??
   # 스케줄 설정 함수
