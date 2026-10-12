@@ -10,10 +10,7 @@ from gui_main import MainWindow
 import json
 import base64
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s") # 로깅 설정
-
+import utils
 
 class SignalGenerator(QObject):
   log = pyqtSignal(object, object, object, object, object)
@@ -58,16 +55,31 @@ class WebSocketServer:
     self.sio.on("get_diamond", self.get_diamond)
   
   def connect(self, sid, environ):
-    query_string = environ.get("QUERY_STRING")
-    query_params = parse_qs(query_string)
-    computer_id = query_params["computer_id"][0]  # "PC01"
-    self.pcList[computer_id] = sid  #클라이언트 리스트 생성
-    self.sio.emit("reqAccount","어카운트 정보 요청!",to=sid)
-    self.signal_generator.user_signal_client_status_label.emit("Client Status:ON",computer_id)
-    main_window.tab.tab_contents[computer_id].tabTreeview_btn_img.setup_data(self.pcList, self.sio)  #버튼 클래스 pcList setup
-    main_window.send_to_image.setup_data(self.sio)
-   
-    print(f"connect {computer_id} 클라이언트", sid)
+    try:
+      query_string = environ.get("QUERY_STRING")
+      query_params = parse_qs(query_string)
+      computer_id = query_params["computer_id"][0]  # "PC01"
+      utils.logging.info(f"connect 시작: {computer_id}, sid={sid}")
+
+      self.pcList[computer_id] = sid  #클라이언트 리스트 생성
+      utils.logging.info("pcList 등록 완료")
+
+      self.sio.emit("reqAccount","어카운트 정보 요청!",to=sid)
+      utils.logging.info("reqAccount 전송 완료")
+
+      self.signal_generator.user_signal_client_status_label.emit("Client Status:ON",computer_id)
+      utils.logging.info("상태 라벨 변경 요청 완료")
+      utils.logging.info(
+            f"tab_contents 키 확인: {computer_id in main_window.tab.tab_contents}"
+        )
+      main_window.tab.tab_contents[computer_id].tabTreeview_btn_img.setup_data(self.pcList, self.sio)  #버튼 클래스 pcList setup
+      utils.logging.info("setup_data 완료")
+      main_window.send_to_image.setup_data(self.sio)
+      utils.logging.info("send_to_image setup_data 완료")
+    except:
+      utils.logging.exception(
+          f"connect 오류: computer_id={computer_id if 'computer_id' in locals() else 'unknown'}, sid={sid}"
+        )
 
   #어떤 컴퓨터의 요청인지 sid로 구분
   def get_computer_id(self,sid):
@@ -83,7 +95,6 @@ class WebSocketServer:
     #여기서 checkStatusRun(False)를 해줘야 하는데 btn클래스 안에 있어서 호출을 못함 나중에 treeview로 뺴서하자
 
   def handle_ping(self, sid, data):
-    # logging.info(f"Received ping from {sid}: {data['time']}")
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     self.sio.emit('pong', {"time": f"{current_time}"}, to=sid)
   
