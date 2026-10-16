@@ -260,26 +260,16 @@ class TabTreeview_btn(QWidget):
         qpush_btn.customContextMenuRequested.connect(self.show_context_menu)
   
         #버튼 클릭 시 동작
-        qpush_btn.clicked.connect(self.send_command_to_client)
-        # qpush_btn.clicked.connect(
-        #   lambda checked=False, btn=qpush_btn, name=button_name:
-        #     self.send_command_to_client(name, btn)
-        # )
+        qpush_btn.clicked.connect(
+          lambda checked=False, btn=qpush_btn, name=button_name:
+            self.send_command_to_client(btn, name)
+        )
 
   #왼쪽 버튼 클릭 시 이벤트 핸들러  
-  def send_command_to_client(self, btn_widget=None, btn_name=None, flag=None):
-    #어떤 버튼은 위젯을 받도 어떤 버튼은 안받게 만들지 말고 일관성 있게 모두 위젯과 버튼 이름을 받게 만들자
-    #위에 버튼 클릭 시 동작은 이미 주석으로 만들어 놓음
-    # emit_data, button_widget=self.generate_button_data(button_name,self.buttonsFromJson)
-    #이렇게 하면 위의 generate도 위젯을 따로 찾을 필요가 없이 데이터 추출만 하게 만들 수 있다.
-    if flag is not None:
-      button_name=btn_name    
-    else:
-      button_name=self.sender().text()
-
+  def send_command_to_client(self, btn_widget, btn_name):
     #이게 현재는 재시작 윈도우즈 스케쥴러에 예약하는거네
-    #이것도 하드 코딩 하지 말고 gui에서 예약 할 수 있게 바꿔야 하는대...
-    if button_name == "재시작": 
+    #이것도 시간 설정을 하드 코딩 하지 말고 gui에서 예약 할 수 있게 바꿔야 하는대...
+    if btn_name == "재시작": 
       sid = self.pcList.get(self.tab_name)
       if not sid:
           print("에러: 해당 클라이언트의 sid를 찾을 수 없습니다.")
@@ -302,14 +292,14 @@ class TabTreeview_btn(QWidget):
       msg_box.buttonClicked.connect(lambda btn_widget: on_messagebox_closed(msg_box.standardButton(btn_widget)))
       msg_box.open()  # exec_() 대신 open() 사용 (비동기 실행)
       return
-    elif button_name == "게임실행":
+    elif btn_name == "게임실행":
       sid = self.pcList.get(self.tab_name)
       if not sid:
           print("에러: 해당 클라이언트의 sid를 찾을 수 없습니다.")
           return
       self.sio.emit('game_start', {}, to=sid)
       return
-    elif button_name == "CODE":
+    elif btn_name == "CODE":
       sid = self.pcList.get(self.tab_name)
       if not sid:
           print("에러: 해당 클라이언트의 sid를 찾을 수 없습니다.")
@@ -317,16 +307,16 @@ class TabTreeview_btn(QWidget):
       self.sio.emit('update_code', {}, to=sid)
       return
     else:
-      emit_data, button_widget=self.generate_button_data(button_name,self.buttonsFromJson)
-      print("button_widget: ",button_widget)
-      self.last_clicked_button[button_name]=button_widget
+      emit_data=self.generate_button_data(btn_name,self.buttonsFromJson)
+      
+      self.last_clicked_button[btn_name]=btn_widget
 
       if emit_data is not None:
         if self.pcList is not None and self.sio is not None:
           sid=self.pcList[self.tab_name]
           #emit_data={"버튼이름":[데이터],"character_list":[{"아이디1":핸들 값1,"아이디2":핸들 값2}]}
           self.sio.emit('button_schedule', emit_data, to=sid)
-          self.start_animation(button_widget, button_name) #애니메이션 추가
+          self.start_animation(btn_widget, btn_name) #애니메이션 추가
         else:
           print("set account 필요함")
     #버튼 이름에 따라 뭔가 역할을 나누지 말고 여기서는 그냥 버튼 데이터만 보내면 수행처리는 클라이언트에서 
@@ -335,11 +325,9 @@ class TabTreeview_btn(QWidget):
   def generate_button_data(self, button_name,buttonsFromJson):
     emit_data={}
     selected_characters={}
-    
     for group_configs in buttonsFromJson.values():
       for config in group_configs:
           if config["name"] == button_name:
-            btn_widget=config["btn_widget"]  #버튼 위젯
             data_list = [
               config["x"],
               config["y"],
@@ -347,6 +335,7 @@ class TabTreeview_btn(QWidget):
               config["yRange"],
               config["charging"]
             ]
+   
     emit_data[button_name]=data_list
     
     if self.rowId !={}:
@@ -357,10 +346,8 @@ class TabTreeview_btn(QWidget):
           selected_characters[name]=handle
           # self.last_clicked_button[button_name]=button
       emit_data["character_list"]=selected_characters
-    
       #emit_data={"버튼이름":[데이터],"character_list":{"아이디1":핸들 값1,"아이디2":핸들 값2}}
-      print("emit_data: ",emit_data,"btn_widget: ",btn_widget)
-      return emit_data, btn_widget
+      return emit_data
     else:
       print("어카운트 접속하지 않음")
 

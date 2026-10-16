@@ -4,7 +4,7 @@ import random
 import schedule
 
 class SignalGenerator(QObject):
-  user_signal_schedule_send_command_to_client = pyqtSignal(object, object, object)
+  user_signal_schedule_send_command_to_client = pyqtSignal(object, object)
   
 class ScheduleTable(QWidget):
   def __init__(self,tab_tree_view):
@@ -47,7 +47,7 @@ class ScheduleTable(QWidget):
   def set_schedule_with_button(self, header_title):
     button = self.scheduled_buttons.get(header_title)
     if button:
-      self.signal_generator.user_signal_schedule_send_command_to_client.emit(button, header_title,1)
+      self.signal_generator.user_signal_schedule_send_command_to_client.emit(button, header_title)
 
   #여기 for루프가 너무 많은대...??
   # 스케줄 설정 함수

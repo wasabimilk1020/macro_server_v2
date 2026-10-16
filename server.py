@@ -86,7 +86,7 @@ class WebSocketServer:
       
   def disconnect(self, sid):
     print("클라이언트 연결 끊김")
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     self.signal_generator.user_signal_client_status_label.emit("Client Status:OFF",computer_id)
     # self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
     #여기서 checkStatusRun(False)를 해줘야 하는데 btn클래스 안에 있어서 호출을 못함 나중에 treeview로 뺴서하자
@@ -97,7 +97,7 @@ class WebSocketServer:
   
   #Set Account 버튼으로 캐릭터리스트를 갱신함
   def revAccount(self, sid, data):
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     if computer_id is None:
       utils.logging.warning("등록되지 않은 SID: %s", sid)
       return
@@ -109,7 +109,7 @@ class WebSocketServer:
     log_message=data[0]
     character_name=data[1]
     flag=data[2]
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     
     #현재 시간
     now = datetime.datetime.now()
@@ -118,14 +118,14 @@ class WebSocketServer:
 
   def stop_animation(self, sid, btn_name):
     button_name=btn_name
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     self.signal_generator.user_signal_stop_animation.emit(button_name, computer_id)
   
   def captured_image(self, sid, data):
     id=data[0]
     current_time=data[1]
     img=data[2]
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     image_data = base64.b64decode(img)
     # 파일로 저장
     with open(f"./image_files/{id}.png", "wb") as f:
@@ -136,7 +136,7 @@ class WebSocketServer:
   def get_diamond(self, sid, data):
     diamond=data[0]
     character_name=data[1]
-    computer_id=self.sid_to_pc(sid)
+    computer_id=self.sid_to_pc[sid]
     self.signal_generator.user_signal_diamond.emit(diamond, computer_id, character_name)
 
   def cleanup(self):
@@ -213,5 +213,5 @@ if __name__ == "__main__":
 #--해결해야 할 것들
 #1. gui와 서버를 확실히 분리하자
 #2. 나머지는 어떻게 할 지 생각해보자.
-#3. open_json utils에 만들어 주자
-#4. 서버를 최초 가동시 클라이언트 중 연결이 끊긴게 있을때 버튼을 누르면 실행 안되고 팅김.
+#3. 클라이언트 접속은 탭에서 색으로 확인 할 수 있는대 가끔 접속은 됬는대 어카운트가 안오는 경우가 있음 어카운트 정보도 표시되게 만들자.
+#4. 동작은 하는대 애니메이션이 이상하게 동작하네

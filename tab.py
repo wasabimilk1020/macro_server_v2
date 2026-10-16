@@ -187,12 +187,12 @@ class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래�
         self.tab_container.setTabIcon(tab_index, QIcon("./emoji/red_circle.png"))
   
   #---컨텍스트 메뉴 (버튼 오른쪽 클릭 메뉴 및 동작)
+  #이 함수가 왜 tab에 있지? tabTreeview_btn에 있어야 되지 않나?
   def show_context_menu(self, position):
     clicked_button = self.sender()  # 이벤트를 보낸 버튼
+    if not clicked_button:  
+        return
     button_name=clicked_button.text()
-    
-    if not clicked_button:  # 버튼이 없으면 종료 (버튼이 없을 일이 있나? 뭐지 이거)
-      return
     
     # QMenu 생성
     menu = QMenu(self)
@@ -213,7 +213,7 @@ class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래�
         elif button_name =="ON":
           self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
         else:
-          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client()   
+          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(clicked_button, button_name)   
   
   def stop_animation(self,btn_name,computer_id):
     button_name=btn_name
