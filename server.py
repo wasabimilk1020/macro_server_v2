@@ -30,6 +30,7 @@ class WebSocketServer:
     socketApp = WSGIApp(self.sio)
     self.server = pywsgi.WSGIServer((self.host, self.port), socketApp)
     self.pcList = {}  # 클라이언트 리스트 {"PC01": sid}
+    self.sid_to_pc = {} #{"sid":"PC01"}
     self.cleanup_done=False #정리 작업을 위한 플래그
     self.cleanup_lock=lock.Semaphore()
     self.greenlet=None  #greenlet 저장용
@@ -59,14 +60,16 @@ class WebSocketServer:
       query_string = environ.get("QUERY_STRING")
       query_params = parse_qs(query_string)
       computer_id = query_params["computer_id"][0]  # "PC01"
-      utils.logging.info(f"connect 시작: {computer_id}, sid={sid}")
 
       self.pcList[computer_id] = sid  #클라이언트 리스트 생성
-      utils.logging.info("pcList 등록 완료")
+      self.sid_to_pc[sid] = computer_id
+      utils.logging.info(f"connect 성공: {computer_id} (sid={sid})")
 
       self.sio.emit("reqAccount","어카운트 정보 요청!",to=sid)
       utils.logging.info("reqAccount 전송 완료")
 
+      #아래 Client Status:ON이라는게 그냥 클라이언트가 접속 했는지 안했는지를 나타내는건가? 
+      #만약 그렇다면 어차피 탭에 색으로 표시되기 때문에 없애버리자.
       self.signal_generator.user_signal_client_status_label.emit("Client Status:ON",computer_id)
       utils.logging.info("상태 라벨 변경 요청 완료")
       utils.logging.info(
@@ -80,16 +83,10 @@ class WebSocketServer:
       utils.logging.exception(
           f"connect 오류: computer_id={computer_id if 'computer_id' in locals() else 'unknown'}, sid={sid}"
         )
-
-  #어떤 컴퓨터의 요청인지 sid로 구분
-  def get_computer_id(self,sid):
-    for computer_id in self.pcList.keys():  
-      if(self.pcList[computer_id] == sid):
-        return computer_id
       
   def disconnect(self, sid):
     print("클라이언트 연결 끊김")
-    computer_id=self.get_computer_id(sid)
+    computer_id=self.sid_to_pc(sid)
     self.signal_generator.user_signal_client_status_label.emit("Client Status:OFF",computer_id)
     # self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
     #여기서 checkStatusRun(False)를 해줘야 하는데 btn클래스 안에 있어서 호출을 못함 나중에 treeview로 뺴서하자
@@ -100,8 +97,11 @@ class WebSocketServer:
   
   #Set Account 버튼으로 캐릭터리스트를 갱신함
   def revAccount(self, sid, data):
+    computer_id=self.sid_to_pc(sid)
+    if computer_id is None:
+      utils.logging.warning("등록되지 않은 SID: %s", sid)
+      return
     character_list=data  #{"아이디":핸들 값...}
-    computer_id=self.get_computer_id(sid)
     self.signal_generator.set_account.emit(computer_id,character_list)
     
   def logEvent(self, sid, data):
@@ -109,7 +109,7 @@ class WebSocketServer:
     log_message=data[0]
     character_name=data[1]
     flag=data[2]
-    computer_id=self.get_computer_id(sid)
+    computer_id=self.sid_to_pc(sid)
     
     #현재 시간
     now = datetime.datetime.now()
@@ -118,14 +118,14 @@ class WebSocketServer:
 
   def stop_animation(self, sid, btn_name):
     button_name=btn_name
-    computer_id=self.get_computer_id(sid)
+    computer_id=self.sid_to_pc(sid)
     self.signal_generator.user_signal_stop_animation.emit(button_name, computer_id)
   
   def captured_image(self, sid, data):
     id=data[0]
     current_time=data[1]
     img=data[2]
-    computer_id=self.get_computer_id(sid)
+    computer_id=self.sid_to_pc(sid)
     image_data = base64.b64decode(img)
     # 파일로 저장
     with open(f"./image_files/{id}.png", "wb") as f:
@@ -136,7 +136,7 @@ class WebSocketServer:
   def get_diamond(self, sid, data):
     diamond=data[0]
     character_name=data[1]
-    computer_id=self.get_computer_id(sid)
+    computer_id=self.sid_to_pc(sid)
     self.signal_generator.user_signal_diamond.emit(diamond, computer_id, character_name)
 
   def cleanup(self):

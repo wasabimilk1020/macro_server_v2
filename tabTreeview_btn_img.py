@@ -236,8 +236,7 @@ class TabTreeview_btn(QWidget):
         self.create_button(self.routine_grid_layout, json_button_configs)
       elif groupBox_name == "세팅":
         self.create_button(self.setting_grid_layout, json_button_configs)
-
-  # def create_button(self, grid_layout, button_widgets, button_configs): 
+ 
   def create_button(self, grid_layout, button_configs):
       #button_configs=[{버튼속성},{버튼속성}]
       while grid_layout.count():  # GridLayout의 모든 위젯 제거
@@ -262,12 +261,19 @@ class TabTreeview_btn(QWidget):
   
         #버튼 클릭 시 동작
         qpush_btn.clicked.connect(self.send_command_to_client)
+        # qpush_btn.clicked.connect(
+        #   lambda checked=False, btn=qpush_btn, name=button_name:
+        #     self.send_command_to_client(name, btn)
+        # )
 
   #왼쪽 버튼 클릭 시 이벤트 핸들러  
-  #button event handler라고 이름 바꾸자
-  def send_command_to_client(self, button=None, title=None, flag=None):
+  def send_command_to_client(self, btn_widget=None, btn_name=None, flag=None):
+    #어떤 버튼은 위젯을 받도 어떤 버튼은 안받게 만들지 말고 일관성 있게 모두 위젯과 버튼 이름을 받게 만들자
+    #위에 버튼 클릭 시 동작은 이미 주석으로 만들어 놓음
+    # emit_data, button_widget=self.generate_button_data(button_name,self.buttonsFromJson)
+    #이렇게 하면 위의 generate도 위젯을 따로 찾을 필요가 없이 데이터 추출만 하게 만들 수 있다.
     if flag is not None:
-      button_name=title    
+      button_name=btn_name    
     else:
       button_name=self.sender().text()
 
@@ -293,7 +299,7 @@ class TabTreeview_btn(QWidget):
                   self.sio.emit('reboot_computer', {"days":"WED","time":"07:00"}, to=sid) #"days":"WED","time":"07:00" 이렇게 하드코딩하면 안된다. 임시
               except Exception as e:
                   print(f"소켓 오류 발생: {e}")  # 네트워크 오류 발생 시 로그 출력
-      msg_box.buttonClicked.connect(lambda button: on_messagebox_closed(msg_box.standardButton(button)))
+      msg_box.buttonClicked.connect(lambda btn_widget: on_messagebox_closed(msg_box.standardButton(btn_widget)))
       msg_box.open()  # exec_() 대신 open() 사용 (비동기 실행)
       return
     elif button_name == "게임실행":
