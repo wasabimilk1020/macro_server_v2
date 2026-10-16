@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout,QHBoxLayout, QPushButton, QLabel,QMainWindow,QGroupBox,QLineEdit,QGridLayout,QSpinBox,QSizePolicy, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout,QHBoxLayout, QPushButton, QLabel,QMainWindow,QGroupBox,QLineEdit,QGridLayout,QSpinBox,QSizePolicy, QMessageBox,QMenu
 from PyQt5.QtGui import QPixmap,QMovie,QColor,QStandardItemModel,QIcon
 import sys,json
 from PyQt5.QtCore import Qt,QVariantAnimation, QTimer,QObject,pyqtSignal
@@ -8,7 +8,7 @@ from datetime import timedelta
 import utils
 
 class SignalGenerator(QObject):
-  user_signal_send_command_to_client= pyqtSignal(object,object,object)
+  user_signal_send_command_to_client= pyqtSignal(object,object)
   user_signal_start_animation = pyqtSignal(object,object)
   user_signal_setText_time_for_statusChk = pyqtSignal(object,object)
 
@@ -59,14 +59,13 @@ class GifViewer(QLabel):
   
 #---이 파일의 메인 클래스
 class TabTreeview_btn(QWidget):
-  def __init__(self,tab_name, tab_widget, tab_contents, show_context_menu):
+  def __init__(self,tab_name, tab_widget, tab_contents):
     super().__init__()
     self.tab_name=tab_name
     self.sio=None
     self.pcList=None
     self.tab_widget=tab_widget
     self.tab_contents=tab_contents
-    self.show_context_menu=show_context_menu
     self.last_clicked_button={}
     self.character_list=None
     self.rowId={}
@@ -172,7 +171,7 @@ class TabTreeview_btn(QWidget):
 
     if self.run_btn_cnt==3:
       self.signal_generator.user_signal_setText_time_for_statusChk.emit(3, new_time.strftime('%H:%M:%S'))
-      self.signal_generator.user_signal_send_command_to_client.emit(button, "아이템분해",1)
+      self.signal_generator.user_signal_send_command_to_client.emit(button, "아이템분해")
       self.run_btn_cnt=0
     elif self.run_btn_cnt==2:
       self.signal_generator.user_signal_setText_time_for_statusChk.emit(3, f"아이템분해: {new_time.strftime('%H:%M:%S')}")
@@ -189,7 +188,7 @@ class TabTreeview_btn(QWidget):
     button_name="status_check_button"
     client_tag= f"chkStatusSchedule_{self.tab_name}"
     tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
-    schedule_min=30
+    schedule_min=1
 
     for config in self.buttonsFromJson["루틴"]: #아이템분해 버튼이 반드시 루틴 그룹에 있어야함
       if config["name"] == "아이템분해":
@@ -205,7 +204,6 @@ class TabTreeview_btn(QWidget):
         self.tab_widget.setTabText(tab_index, f"✅ {self.tab_name}")
       schedule.clear(client_tag)
       schedule.every(schedule_min).minutes.do(self.set_schedule_chkStatus, clicked_button, button_name, decomposeItem_button, client_tag, schedule_min).tag(client_tag)
-      # schedule.every(20).seconds.do(self.set_schedule_chkStatus, clicked_button, button_name, decomposeItem_button, sid).tag(client_tag)
       job=schedule.get_jobs(client_tag)
       self.setText_time_for_statusChk(2,"statusChk time:")
       self.setText_time_for_statusChk(3,job[0].next_run.strftime('%H:%M:%S'))
@@ -395,6 +393,38 @@ class TabTreeview_btn(QWidget):
       self.sio.emit("reqAccount","어카운트 정보 요청!",to=sid)
     else:
       print("클라이언트가 연결되지 않았습니다.")
+
+  #---컨텍스트 메뉴 (버튼 오른쪽 클릭 메뉴 및 동작)
+  def show_context_menu(self, position):
+    clicked_button = self.sender()  # 이벤트를 보낸 버튼
+    if not clicked_button:  
+        return
+    button_name=clicked_button.text()
+    
+    # QMenu 생성
+    menu = QMenu(self)
+    # 메뉴 항목 추가
+    action1 = menu.addAction(f"{button_name} 실행")
+
+    # 클릭된 버튼의 위치를 전역 좌표로 변환
+    global_position = clicked_button.mapToGlobal(position)  #오른쪽 클릭 했을 때 메뉴가 나오는 마우스 좌표
+
+    # 메뉴 실행
+    action = menu.exec_(global_position)
+
+    # 선택된 항목 확인
+    if action == action1:
+      for computer_id in self.tab_contents.keys():
+        if button_name == "OFF":
+          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
+        elif button_name =="ON":
+          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
+        else:
+          for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
+            for button_dict in button_group_list:
+              if button_dict["name"]==button_name:
+                button=button_dict["btn_widget"]
+          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name)   
    
 if __name__ == "__main__":
   app = QApplication(sys.argv)
