@@ -188,11 +188,11 @@ class TabTreeview_btn(QWidget):
     button_name="status_check_button"
     client_tag= f"chkStatusSchedule_{self.tab_name}"
     tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
-    schedule_min=1
+    schedule_min=30
 
     for config in self.buttonsFromJson["루틴"]: #아이템분해 버튼이 반드시 루틴 그룹에 있어야함
       if config["name"] == "아이템분해":
-        decomposeItem_button = config
+        decomposeItem_button = config["btn_widget"]
         break
 
 
