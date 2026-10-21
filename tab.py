@@ -29,13 +29,14 @@ class ImageViewer(QLabel):
 
 # 탭 클래스
 class TabContents(QWidget):
-  def __init__(self,tab_name, tab_container, tab_contents):
+  # def __init__(self,tab_name, tab_container, tab_contents):
+  def __init__(self,tab_name, tab_container):
     super().__init__()
     self.tab_name = tab_name  # 탭 이름 설정
     self.tab_container = tab_container
     self.sio = None
     self.rowId={} #{"아이디":rowId}
-    self.tab_contents=tab_contents  #TabTreeview_btn클래스에서 필요 한건데 실질적으로 index가 필요한거라 index를 넘겨주게 만들자
+    # self.tab_contents=tab_contents  #TabTreeview_btn클래스에서 필요 한건데 실질적으로 index가 필요한거라 index를 넘겨주게 만들자
     
   # QTreeWidget 생성
     self.tree_widget = QTreeWidget()
@@ -58,7 +59,8 @@ class TabContents(QWidget):
     self.sum_label.setAlignment(Qt.AlignRight)
     
   # 버튼 및 이미지 레이아웃
-    self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self.tab_contents)
+    # self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self.tab_contents)
+    self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self)
     self.json_editor = JsonEditor(self.tab_name, self.tab_container, self.tabTreeview_btn_img)
 
   # 레이아웃 설정
@@ -91,7 +93,7 @@ class TabContents(QWidget):
           child_item.setCheckState(0, state)
 
   
-class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래스 내에서 다 하면 안되나?
+class Tab(QWidget): 
   def __init__(self, tab_count):
     super().__init__()
     self.tab_container = QTabWidget()
@@ -115,7 +117,8 @@ class Tab(QWidget): #Tab과 TabContents를 분리해야되나 굳이? Tab클래�
   def create_tabs(self, tab_count, tab_container):  
     for i in range(1, tab_count + 1):
       tab_name = f"PC{i:02d}"
-      tab = TabContents(tab_name, tab_container, self.tab_contents) #TabContents를 생성 하면서 self.tab_contents를 넘겨주는게 대게 이상한대 형태가..
+      # tab = TabContents(tab_name, tab_container, self.tab_contents) #TabContents를 생성 하면서 self.tab_contents를 넘겨주는게 대게 이상한대 형태가.. 
+      tab = TabContents(tab_name, tab_container)
       tab_container.addTab(tab, QIcon("./emoji/red_circle.png"), tab_name)
       self.tab_contents[tab_name] = tab
   

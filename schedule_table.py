@@ -14,7 +14,6 @@ class ScheduleTable(QWidget):
     self.scheduled_buttons = {}  # 헤더 제목과 버튼 객체 매핑
     self.signal_generator = SignalGenerator()
     for computer_id in self.tab_tree_view.tab_contents.keys():
-      # print("computer_id",computer_id)
       self.signal_generator.user_signal_schedule_send_command_to_client.connect(self.tab_tree_view.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client)
     
     # 메인 레이아웃

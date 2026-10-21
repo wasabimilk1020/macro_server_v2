@@ -59,13 +59,15 @@ class GifViewer(QLabel):
   
 #---이 파일의 메인 클래스
 class TabTreeview_btn(QWidget):
-  def __init__(self,tab_name, tab_widget, tab_contents):
+  # def __init__(self,tab_name, tab_widget, tab_contents):
+  def __init__(self,tab_name, tab_widget, tab_content):
     super().__init__()
     self.tab_name=tab_name
     self.sio=None
     self.pcList=None
     self.tab_widget=tab_widget
-    self.tab_contents=tab_contents
+    # self.tab_contents=tab_contents
+    self.tab_content=tab_content
     self.last_clicked_button={}
     self.character_list=None
     self.rowId={}
@@ -187,7 +189,8 @@ class TabTreeview_btn(QWidget):
     clicked_button=self.run_btn
     button_name="status_check_button"
     client_tag= f"chkStatusSchedule_{self.tab_name}"
-    tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+    # tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+    tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
     schedule_min=30
 
     for config in self.buttonsFromJson["루틴"]: #아이템분해 버튼이 반드시 루틴 그룹에 있어야함
@@ -282,11 +285,11 @@ class TabTreeview_btn(QWidget):
       msg_box.setDefaultButton(QMessageBox.No)
       # 메시지 박스가 닫힐 때 후속 동작 실행
       def on_messagebox_closed(result):
-          if result == QMessageBox.Yes:
-              try:
-                  self.sio.emit('reboot_computer', {"days":"WED","time":"07:00"}, to=sid) #"days":"WED","time":"07:00" 이렇게 하드코딩하면 안된다. 임시
-              except Exception as e:
-                  print(f"소켓 오류 발생: {e}")  # 네트워크 오류 발생 시 로그 출력
+        if result == QMessageBox.Yes:
+          try:
+            self.sio.emit('reboot_computer', {"days":"WED","time":"07:00"}, to=sid) #"days":"WED","time":"07:00" 이렇게 하드코딩하면 안된다. 임시
+          except Exception as e:
+            print(f"소켓 오류 발생: {e}")  # 네트워크 오류 발생 시 로그 출력
       msg_box.buttonClicked.connect(lambda btn_widget: on_messagebox_closed(msg_box.standardButton(btn_widget)))
       msg_box.open()  # exec_() 대신 open() 사용 (비동기 실행)
       return
@@ -381,7 +384,8 @@ class TabTreeview_btn(QWidget):
       row_id.setText(3,"")
       row_id.takeChildren()
       # 특정 탭 이름만 빨간색으로 변경
-      tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+      # tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+      tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
       row_id.setCheckState(0,Qt.Checked)
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_widget.tabBar().setTabTextColor(tab_index, QColor("black"))
@@ -412,19 +416,31 @@ class TabTreeview_btn(QWidget):
     # 메뉴 실행
     action = menu.exec_(global_position)
 
+    # # 선택된 항목 확인
+    # if action == action1:
+    #   for computer_id in self.tab_contents.keys():
+    #     if button_name == "OFF":
+    #       self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
+    #     elif button_name =="ON":
+    #       self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
+    #     else:
+    #       for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
+    #         for button_dict in button_group_list:
+    #           if button_dict["name"]==button_name:
+    #             button=button_dict["btn_widget"]
+    #       self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name) 
     # 선택된 항목 확인
     if action == action1:
-      for computer_id in self.tab_contents.keys():
         if button_name == "OFF":
-          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
+          self.tab_content.tabTreeview_btn_img.checkStatusRun(True)
         elif button_name =="ON":
-          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
+          self.tab_content.tabTreeview_btn_img.checkStatusRun(False)
         else:
-          for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
+          for button_group_list in self.tab_content.tabTreeview_btn_img.buttonsFromJson.values():
             for button_dict in button_group_list:
               if button_dict["name"]==button_name:
                 button=button_dict["btn_widget"]
-          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name)   
+          self.tab_content.tabTreeview_btn_img.send_command_to_client(button, button_name)    
    
 if __name__ == "__main__":
   app = QApplication(sys.argv)
