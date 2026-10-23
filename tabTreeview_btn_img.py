@@ -12,22 +12,6 @@ class SignalGenerator(QObject):
   user_signal_start_animation = pyqtSignal(object,object)
   user_signal_setText_time_for_statusChk = pyqtSignal(object,object)
 
-# class ImageViewer(QLabel):
-#   def __init__(self, image_path):
-#     super().__init__()
-#     self.full_pixmap = QPixmap(image_path)  # 전체 이미지
-#     self.setPixmap(self.full_pixmap.copy(0, 0, 50, 30))  # 일부 이미지만 표시
-
-#   def enterEvent(self, event):
-#     """마우스가 들어왔을 때 전체 이미지를 표시"""
-#     self.setPixmap(self.full_pixmap.copy(0, 0, 100, 30))
-#     super().enterEvent(event)
-
-#   def leaveEvent(self, event):
-#     """마우스가 나갔을 때 이미지를 일부만 표시"""
-#     self.setPixmap(self.full_pixmap.copy(0, 0, 50, 30))
-#     super().leaveEvent(event)
-
 class GifViewer(QLabel):
   def __init__(self, gif_path):
     super().__init__()
@@ -48,26 +32,19 @@ class GifViewer(QLabel):
     """마우스가 나갔을 때 작은 크기로 변경"""
     self.setFixedSize(40, 30)
     super().leaveEvent(event)
-
-# def load_json(json_file,tab_name):
-#   """JSON 파일 로드."""
-#   try:
-#       with open(json_file, "r", encoding="utf-8") as f:
-#           return json.load(f)
-#   except (FileNotFoundError, json.JSONDecodeError):
-#     print(f"{tab_name} json 파일을 찾을 수 없음")
   
 #---이 파일의 메인 클래스
 class TabTreeview_btn(QWidget):
-  # def __init__(self,tab_name, tab_widget, tab_contents):
-  def __init__(self,tab_name, tab_widget, tab_content):
+  def __init__(self,tab_name, tab_widget, tab_contents):
+  # def __init__(self, parent_tab, tab_name, tab_widget, tab_content):
     super().__init__()
     self.tab_name=tab_name
     self.sio=None
     self.pcList=None
     self.tab_widget=tab_widget
-    # self.tab_contents=tab_contents
-    self.tab_content=tab_content
+    self.tab_contents=tab_contents
+    # self.tab_content=tab_content
+    # self.parent_tab=parent_tab
     self.last_clicked_button={}
     self.character_list=None
     self.rowId={}
@@ -77,28 +54,21 @@ class TabTreeview_btn(QWidget):
     self.signal_generator.user_signal_start_animation.connect(self.start_animation)
     self.signal_generator.user_signal_send_command_to_client.connect(self.send_command_to_client)
     self.signal_generator.user_signal_setText_time_for_statusChk.connect(self.setText_time_for_statusChk)
-    
-    #reset 및 client status 위젯 및 레이아웃 세팅
-    self.client_status_layout = QVBoxLayout()
-    self.client_status = QLabel("Client Status:OFF")
-    self.client_status.setStyleSheet("color: red;")
-    self.client_status.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-    self.client_status_layout.addWidget(self.client_status)
-    self.status_check = QLabel("Status Check:OFF")
-    self.status_check.setStyleSheet("color: red;")
-    self.status_check.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-    self.client_status_layout.addWidget(self.status_check)    
+    self.buttonsFromJson={} #json 버튼 데이터
+    self.animations = {}  #애니메이션 객체를 위한 딕트
     
     self.run_btn = QPushButton("OFF")
+    self.status_check_label = QLabel("Status Check:")
     self.run_btn.setContextMenuPolicy(Qt.CustomContextMenu) # 컨텍스트 메뉴 활성화 (우클릭 이벤트)
     self.run_btn.customContextMenuRequested.connect(self.show_context_menu)
+    # self.run_btn.customContextMenuRequested.connect(self.parent_tab.show_context_menu)
     self.run_btn.setFixedSize(100, 22)
     self.run_btn.setCheckable(True)
     self.run_btn.toggled.connect(self.checkStatusRun)
   
     self.client_status_horizontal=QHBoxLayout()
     self.client_status_horizontal.setAlignment(Qt.AlignLeft)
-    self.client_status_horizontal.addLayout(self.client_status_layout)
+    self.client_status_horizontal.addWidget(self.status_check_label)
     self.client_status_horizontal.addWidget(self.run_btn)
 
     #reset and Set Account buttons
@@ -107,42 +77,37 @@ class TabTreeview_btn(QWidget):
     self.reset_button.setShortcut("F1")
     self.reset_button.setToolTip("단축키(F1)")
     self.reset_button.clicked.connect(self.reset_status_and_log)
-    self.set_account=QPushButton("Set Account")
-    self.set_account.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-    self.set_account.clicked.connect(self.set_account_fct)
+    self.set_account_btn=QPushButton("Set Account")
+    self.set_account_btn.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+    self.set_account_btn.clicked.connect(self.set_account_fct)
 
     self.status_reset_btn_layout = QHBoxLayout()  #status 라벨과 reset 버튼 메인 레이아웃
     self.status_reset_btn_layout.addLayout(self.client_status_horizontal)
-    self.status_reset_btn_layout.addWidget(self.set_account)
+    self.status_reset_btn_layout.addWidget(self.set_account_btn)
     self.status_reset_btn_layout.addWidget(self.reset_button)
 
     #버튼 그룹박스 위젯에 각각 grid layout 세팅
     self.dungeon_grid_layout = QGridLayout()
     self.routine_grid_layout = QGridLayout()
     self.setting_grid_layout = QGridLayout()
-    self.routine_group_btn_layout=QHBoxLayout()
-    self.setting_group_btn_layout=QHBoxLayout()
-    self.dungeon_group_btn=QGroupBox("던전")
-    self.dungeon_group_btn.setLayout(self.dungeon_grid_layout)
-    self.routine_group_btn=QGroupBox("루틴")
-    self.routine_group_btn.setLayout(self.routine_grid_layout)
-    self.setting_group_btn=QGroupBox("세팅")
-    self.setting_group_btn.setLayout(self.setting_grid_layout)
+    self.dungeon_group_btn_layout=QGroupBox("던전")
+    self.dungeon_group_btn_layout.setLayout(self.dungeon_grid_layout)
+    self.routine_group_btn_layout=QGroupBox("루틴")
+    self.routine_group_btn_layout.setLayout(self.routine_grid_layout)
+    self.setting_group_btn_layout=QGroupBox("세팅")
+    self.setting_group_btn_layout.setLayout(self.setting_grid_layout)
 
     #메인 레이아웃에 세팅
-    self.tabTreeView_btn_layout=QVBoxLayout() #여기서는 이게 main layout이다. 이게 main gui에서 원하는 곳에 위치하면된다
-    self.tabTreeView_btn_layout.addLayout(self.status_reset_btn_layout)
-    self.tabTreeView_btn_layout.addWidget(self.dungeon_group_btn)
-    self.tabTreeView_btn_layout.addWidget(self.routine_group_btn)
-    self.tabTreeView_btn_layout.addWidget(self.setting_group_btn)
+    self.tabContents_layout=QVBoxLayout() #여기서는 이게 main layout이다. 이게 main gui에서 원하는 곳에 위치하면된다
+    self.tabContents_layout.addLayout(self.status_reset_btn_layout)
+    self.tabContents_layout.addWidget(self.dungeon_group_btn_layout)
+    self.tabContents_layout.addWidget(self.routine_group_btn_layout)
+    self.tabContents_layout.addWidget(self.setting_group_btn_layout)
 
     self.image_main_layout=QHBoxLayout()  #이미지 레이아웃
-    self.tabTreeView_btn_layout.addLayout(self.image_main_layout)
+    self.tabContents_layout.addLayout(self.image_main_layout)
 
-    self.setLayout(self.tabTreeView_btn_layout) 
-
-    self.buttonsFromJson={} #json 버튼 데이터
-    self.animations = {}  #애니메이션 객체를 위한 딕트
+    self.setLayout(self.tabContents_layout) 
     self.load_buttons()  #default button 생성
 
   def setup_data(self, pcList, sio):
@@ -185,12 +150,11 @@ class TabTreeview_btn(QWidget):
       self.signal_generator.user_signal_start_animation.emit(clicked_button, button_name)  #(button_name="OFF")
 
   def checkStatusRun(self, checked):
-    # clicked_button=self.sender()
     clicked_button=self.run_btn
     button_name="status_check_button"
     client_tag= f"chkStatusSchedule_{self.tab_name}"
-    # tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
-    tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
+    tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+    # tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
     schedule_min=30
 
     for config in self.buttonsFromJson["루틴"]: #아이템분해 버튼이 반드시 루틴 그룹에 있어야함
@@ -198,11 +162,8 @@ class TabTreeview_btn(QWidget):
         decomposeItem_button = config["btn_widget"]
         break
 
-
     if checked:
       self.run_btn.setText("ON")
-      self.status_check.setText("Status Check:ON")
-      self.status_check.setStyleSheet("color:green")
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_widget.setTabText(tab_index, f"✅ {self.tab_name}")
       schedule.clear(client_tag)
@@ -212,8 +173,6 @@ class TabTreeview_btn(QWidget):
       self.setText_time_for_statusChk(3,job[0].next_run.strftime('%H:%M:%S'))
     else:
       self.run_btn.setText("OFF")
-      self.status_check.setText("Status Check:OFF")
-      self.status_check.setStyleSheet("color:red")
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_widget.setTabText(tab_index, f"❌ {self.tab_name}")
       schedule.clear(client_tag)
@@ -259,6 +218,7 @@ class TabTreeview_btn(QWidget):
         # 컨텍스트 메뉴 활성화 (우클릭 이벤트)
         qpush_btn.setContextMenuPolicy(Qt.CustomContextMenu)
         qpush_btn.customContextMenuRequested.connect(self.show_context_menu)
+        # qpush_btn.customContextMenuRequested.connect(self.parent_tab.show_context_menu)
   
         #버튼 클릭 시 동작
         qpush_btn.clicked.connect(
@@ -353,10 +313,6 @@ class TabTreeview_btn(QWidget):
       print("어카운트 접속하지 않음")
 
 #---버튼 애니메이션 기능
-  def update_button_color(self, color,button):
-    # 버튼 배경색 업데이트
-    button.setStyleSheet(f"background-color: {color.name()};")
-
   def start_animation(self,btn, btn_name):
     button=btn
     button_name=btn_name
@@ -371,7 +327,7 @@ class TabTreeview_btn(QWidget):
         endValue=QColor(128, 0, 128),  # 보라색
      )
     animation.setDuration(2000)  # 1초 동안 실행
-    animation.valueChanged.connect(lambda color: self.update_button_color(color, button))  # 색상 변경 연결
+    animation.valueChanged.connect(lambda color: button.setStyleSheet(f"background-color: {color.name()};")) 
     animation.setLoopCount(-1)  # 무한 반복
     animation.start()
    
@@ -384,8 +340,8 @@ class TabTreeview_btn(QWidget):
       row_id.setText(3,"")
       row_id.takeChildren()
       # 특정 탭 이름만 빨간색으로 변경
-      # tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
-      tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
+      tab_index = self.tab_widget.indexOf(self.tab_contents[self.tab_name])  # 현재 탭의 인덱스 가져오기
+      # tab_index = self.tab_widget.indexOf(self.tab_content)  # 현재 탭의 인덱스 가져오기
       row_id.setCheckState(0,Qt.Checked)
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_widget.tabBar().setTabTextColor(tab_index, QColor("black"))
@@ -416,49 +372,18 @@ class TabTreeview_btn(QWidget):
     # 메뉴 실행
     action = menu.exec_(global_position)
 
-    # # 선택된 항목 확인
-    # if action == action1:
-    #   for computer_id in self.tab_contents.keys():
-    #     if button_name == "OFF":
-    #       self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
-    #     elif button_name =="ON":
-    #       self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
-    #     else:
-    #       for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
-    #         for button_dict in button_group_list:
-    #           if button_dict["name"]==button_name:
-    #             button=button_dict["btn_widget"]
-    #       self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name) 
     # 선택된 항목 확인
     if action == action1:
+      for computer_id in self.tab_contents.keys():
         if button_name == "OFF":
-          self.tab_content.tabTreeview_btn_img.checkStatusRun(True)
+          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
         elif button_name =="ON":
-          self.tab_content.tabTreeview_btn_img.checkStatusRun(False)
+          self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
         else:
-          for button_group_list in self.tab_content.tabTreeview_btn_img.buttonsFromJson.values():
+          for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
             for button_dict in button_group_list:
               if button_dict["name"]==button_name:
                 button=button_dict["btn_widget"]
-          self.tab_content.tabTreeview_btn_img.send_command_to_client(button, button_name)    
-   
-if __name__ == "__main__":
-  app = QApplication(sys.argv)
-  window = TabTreeview_btn()
-  window.show()
-  # 예제: 클라이언트에서 호출하여 레이아웃 추가
-  window.image_layout("이해의시계", "00:00", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-  window.image_layout("빛의파편", "00:01", "test.png", "test_gif.gif")
-
-
-  sys.exit(app.exec_())
+          self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name)    
 
 

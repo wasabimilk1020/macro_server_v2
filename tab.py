@@ -27,16 +27,15 @@ class ImageViewer(QLabel):
     self.setPixmap(self.full_pixmap.copy(0, 0, 50, 30))
     super().leaveEvent(event)
 
-# 탭 클래스
+# 탭 내부 위젯 및 레이아웃
 class TabContents(QWidget):
-  # def __init__(self,tab_name, tab_container, tab_contents):
-  def __init__(self,tab_name, tab_container):
+  def __init__(self,tab_name, tab_container, tab_contents):
     super().__init__()
     self.tab_name = tab_name  # 탭 이름 설정
     self.tab_container = tab_container
     self.sio = None
     self.rowId={} #{"아이디":rowId}
-    # self.tab_contents=tab_contents  #TabTreeview_btn클래스에서 필요 한건데 실질적으로 index가 필요한거라 index를 넘겨주게 만들자
+    self.tab_contents=tab_contents  #TabTreeview_btn클래스에서 필요 한건데 실질적으로 index가 필요한거라 index를 넘겨주게 만들자
     
   # QTreeWidget 생성
     self.tree_widget = QTreeWidget()
@@ -59,8 +58,7 @@ class TabContents(QWidget):
     self.sum_label.setAlignment(Qt.AlignRight)
     
   # 버튼 및 이미지 레이아웃
-    # self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self.tab_contents)
-    self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self)
+    self.tabTreeview_btn_img = TabTreeview_btn(self.tab_name, self.tab_container, self.tab_contents)
     self.json_editor = JsonEditor(self.tab_name, self.tab_container, self.tabTreeview_btn_img)
 
   # 레이아웃 설정
@@ -73,11 +71,6 @@ class TabContents(QWidget):
     #이 레프트 탭 레이아웃도 어떤 클래스로 감싸서 하나의 위젯으로 만들 수 있을 것 같은데...
     self.tab_layout.addLayout(self.left_tab_layout)
     self.tab_layout.addWidget(self.json_editor)
-
-    # #이미지 테스트용 데이터
-    # for i in range(10):
-    #   # self.tabTreeview_btn_img.image_layout("이해의시계", "00:00", "test.png", "test_gif.gif")  #git포함
-    #   self.tabTreeview_btn_img.image_layout("이해의시계", "00:00", "test.png")  
       
     self.setLayout(self.tab_layout)
 
@@ -117,8 +110,8 @@ class Tab(QWidget):
   def create_tabs(self, tab_count, tab_container):  
     for i in range(1, tab_count + 1):
       tab_name = f"PC{i:02d}"
-      # tab = TabContents(tab_name, tab_container, self.tab_contents) #TabContents를 생성 하면서 self.tab_contents를 넘겨주는게 대게 이상한대 형태가.. 
-      tab = TabContents(tab_name, tab_container)
+      tab = TabContents(tab_name, tab_container, self.tab_contents) #TabContents를 생성 하면서 self.tab_contents를 넘겨주는게 대게 이상한대 형태가..
+      #왜 self.tab_contents를 넘겨 줘야 하는지 정확히 알았음 안에서 모든 클라언트에게 명령을 내리는 부분이 있음 show_context_menu
       tab_container.addTab(tab, QIcon("./emoji/red_circle.png"), tab_name)
       self.tab_contents[tab_name] = tab
   
@@ -176,15 +169,12 @@ class Tab(QWidget):
     self.tab_contents[PC_id].tabTreeview_btn_img.setup_character_list_and_rowId(character_list, self.tab_contents[PC_id].rowId, header_item)
   
   def client_status_label(self, status, PC_id):
-    self.tab_contents[PC_id].tabTreeview_btn_img.client_status.setText(status)
     tab_index = self.tab_container.indexOf(self.tab_contents[PC_id])  # 현재 탭의 인덱스 가져오기
 
-    if status=="Client Status:ON":
-      self.tab_contents[PC_id].tabTreeview_btn_img.client_status.setStyleSheet("color: green;")
+    if status=="ON":
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_container.setTabIcon(tab_index, QIcon("./emoji/green_circle.png"))
     else:
-      self.tab_contents[PC_id].tabTreeview_btn_img.client_status.setStyleSheet("color: red;")
       if tab_index != -1:  # 유효한 인덱스라면
         self.tab_container.setTabIcon(tab_index, QIcon("./emoji/red_circle.png"))
   
@@ -198,36 +188,6 @@ class Tab(QWidget):
     # print("last_clicked_button: ",self.tab_contents[computer_id].tabTreeview_btn_img.last_clicked_button)
     self.tab_contents[computer_id].tabTreeview_btn_img.last_clicked_button[button_name].setStyleSheet("background-color: none;")
     self.tab_contents[computer_id].tabTreeview_btn_img.last_clicked_button[button_name].setEnabled(True)
-
-  #---이미지 섹션
-  # def image_layout(self, character_name, time, image_path, gif_path): #일단 gif는 보류
-  # def image_layout(self, _character_name, time, image_path, computer_id):
-  #   # 수직 레이아웃 생성
-  #   image_vertical_box = QVBoxLayout()
-  #   character_name = _character_name.split(maxsplit=1)[1]
-
-  #   if character_name in self.image_widgets:
-  #     self.image_widgets[character_name][0].setText(character_name)
-  #     self.image_widgets[character_name][1].setText(time)
-  #     self.image_widgets[character_name][2].set_pixmap()
-  #   else: 
-  #     self.image_widgets[character_name]=[]
-  #     # 캐릭터 이름 QLabel
-  #     name_label = QLabel(character_name)      
-  #     image_vertical_box.addWidget(name_label)
-  #     self.image_widgets[character_name].append(name_label)
-
-  #     # 시간 QLabel
-  #     time_label = QLabel(time)
-  #     image_vertical_box.addWidget(time_label)
-  #     self.image_widgets[character_name].append(time_label)
-
-  #     # 이미지 뷰어
-  #     image_viewer = ImageViewer(image_path)
-  #     image_viewer.set_pixmap()
-  #     image_vertical_box.addWidget(image_viewer)
-  #     self.image_widgets[character_name].append(image_viewer)
-  #     self.tab_contents[computer_id].tabTreeview_btn_img.image_main_layout.addLayout(image_vertical_box)
    
   def image_layout(self, _character_name, time, image_path, computer_id):
     # 수직 레이아웃 생성
@@ -280,5 +240,37 @@ class Tab(QWidget):
       except ValueError:
         pass  # 숫자가 아니면 무시
     self.tab_contents[PC_id].sum_label.setText(f"다이아 합계: {total}")
+
+  # #---컨텍스트 메뉴 (버튼 오른쪽 클릭 메뉴 및 동작)
+  #   def show_context_menu(self, position):
+  #     clicked_button = self.sender()  # 이벤트를 보낸 버튼
+  #     if not clicked_button:  
+  #         return
+  #     button_name=clicked_button.text()
+      
+  #     # QMenu 생성
+  #     menu = QMenu(self)
+  #     # 메뉴 항목 추가
+  #     action1 = menu.addAction(f"{button_name} 실행")
+  
+  #     # 클릭된 버튼의 위치를 전역 좌표로 변환
+  #     global_position = clicked_button.mapToGlobal(position)  #오른쪽 클릭 했을 때 메뉴가 나오는 마우스 좌표
+  
+  #     # 메뉴 실행
+  #     action = menu.exec_(global_position)
+  
+  #     # 선택된 항목 확인
+  #     if action == action1:
+  #       for computer_id in self.tab_contents.keys():
+  #         if button_name == "OFF":
+  #           self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(True)
+  #         elif button_name =="ON":
+  #           self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
+  #         else:
+  #           for button_group_list in self.tab_contents[computer_id].tabTreeview_btn_img.buttonsFromJson.values():
+  #             for button_dict in button_group_list:
+  #               if button_dict["name"]==button_name:
+  #                 button=button_dict["btn_widget"]
+  #           self.tab_contents[computer_id].tabTreeview_btn_img.send_command_to_client(button, button_name) 
 
 

@@ -70,7 +70,7 @@ class WebSocketServer:
 
       #아래 Client Status:ON이라는게 그냥 클라이언트가 접속 했는지 안했는지를 나타내는건가? 
       #만약 그렇다면 어차피 탭에 색으로 표시되기 때문에 없애버리자.
-      self.signal_generator.user_signal_client_status_label.emit("Client Status:ON",computer_id)
+      self.signal_generator.user_signal_client_status_label.emit("ON",computer_id)
       utils.logging.info("상태 라벨 변경 요청 완료")
       utils.logging.info(
             f"tab_contents 키 확인: {computer_id in main_window.tab.tab_contents}"
@@ -87,9 +87,7 @@ class WebSocketServer:
   def disconnect(self, sid):
     print("클라이언트 연결 끊김")
     computer_id=self.sid_to_pc[sid]
-    self.signal_generator.user_signal_client_status_label.emit("Client Status:OFF",computer_id)
-    # self.tab_contents[computer_id].tabTreeview_btn_img.checkStatusRun(False)
-    #여기서 checkStatusRun(False)를 해줘야 하는데 btn클래스 안에 있어서 호출을 못함 나중에 treeview로 뺴서하자
+    self.signal_generator.user_signal_client_status_label.emit("OFF",computer_id)
 
   def handle_ping(self, sid, data):
     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -131,7 +129,6 @@ class WebSocketServer:
     with open(f"./image_files/{id}.png", "wb") as f:
       f.write(image_data)
     self.signal_generator.user_signal_captured_img.emit(id, current_time, f"./image_files/{id}.png", computer_id)
-    # self.tabTreeview_btn_img.image_layout("이해의시계", "00:00", "test.png")  
     
   def get_diamond(self, sid, data):
     diamond=data[0]
@@ -215,7 +212,7 @@ if __name__ == "__main__":
 #2. 나머지는 어떻게 할 지 생각해보자.
 #3. 클라이언트 접속은 탭에서 색으로 확인 할 수 있는대 가끔 접속은 됬는대 어카운트가 안오는 경우가 있음 어카운트 정보도 표시되게 만들자.
 #4. 애니메이션에 아직도 문제가 있내. 스케쥴로 우편 실행 될때 다 안되고 한군대만 효과가 나오네. 스케쥴 전부 그런가 우편만 그런가??
-
+#5. tabTreeview_btn에 tab_contents를 self로 보내는것 주석 처리로 완성해놨으니 주석 풀고 테스트. 문제가 show_context_menu때문에 안되는거였네...모든 클라에 어떻게 접근할까 이 방법 말고.
 #6. #4번과 연관된건대 애니메이션이 어떻게 시작하고 스탑되는지 살펴보자. 스케쥴 시 왜 하나만 애니메이션이 동작하는지 자체는 이해했음. 위젯을 하나만 전달해주고 있음.
 #7. #4, #6 스케쥴 테이블에서 list로 위젯을 보내는거까지는 맞는대. 이때 현재 send_command_to_client에서 인자로 list도 받게 하고 if문 분기를 하나더 만들어서 처리 할까
 #아니면 아예 스케쥴 command 함수를 따로 만드는가 나을까? ssend_scheduled_command_to_client 이런 식으로. 음..chatgpt읽어 보니까 이 방법이 나은것 같다.
